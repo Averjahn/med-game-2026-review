@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка кейсов 2026</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 "Segoe UI", sans-serif; color: #1c1c1c; background: #f6f6f4; }
+  aside { max-width: 760px; margin: 0 auto; background: #fff; padding: 16px 20px 32px; min-height: 100vh; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  p { margin: 0 0 10px; }
+  label { display: block; font-size: 12px; margin: 8px 0 4px; }
+  input[type="password"], input[type="text"] { width: 100%; padding: 6px 8px; }
+  .row { display: flex; gap: 8px; align-items: center; margin: 8px 0 12px; }
+  button { padding: 6px 10px; }
+  .card { border: 1px solid #d0d0cb; background: #fff; padding: 10px 12px; margin: 0 0 8px; cursor: pointer; }
+  .card:hover { border-color: #6b6b66; }
+  .card.active { border-color: #1c1c1c; }
+  .card h2 { font-size: 14px; margin: 0 0 4px; }
+  .meta { font-size: 12px; color: #555; }
+  .note { margin-top: 6px; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border: 1px solid #bbb; margin-left: 6px; }
+  .verified .badge { border-color: #1f6b2a; color: #1f6b2a; }
+  .review .badge { border-color: #8a5a00; color: #8a5a00; }
+  iframe { flex: 1; border: 0; background: #fff; }
+  .empty { flex: 1; display: flex; align-items: center; justify-content: center; color: #666; padding: 24px; text-align: center; }
+  .url { font-size: 12px; word-break: break-all; color: #333; margin-top: 8px; }
+</style>
+</head>
+<body>
+<aside>
+  <h1>Проверка кейсов</h1>
+  <p>Двойной щелчок открывает кейс в соседней вкладке: is_platform=true, group_id=13, course_id=126. Вручную подтверждено только задание 2.</p>
+  <label for="token">Bearer-токен игрока, один раз</label>
+  <input id="token" type="password" autocomplete="off" placeholder="Вставьте токен, если игра ждёт платформу">
+  <div class="row">
+    <button id="save" type="button">Сохранить токен</button>
+    <label><input id="showAll" type="checkbox"> Показать неготовые</label>
+  </div>
+  <p id="placeholder">Двойной щелчок по карточке открывает кейс в соседней вкладке. Адрес на карточке уже содержит is_platform=true, group_id=13 и course_id=126.</p>
+  <div id="list"></div>
+</aside>
+<script>
+const TESTS = [{"n": 1, "id": 1138, "play": "2026 Задание 1", "title": "2026 АГ 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 2, "id": 1139, "play": "2026 Задание 2", "title": "2026 АГ 2", "status": "verified", "note": "Единственное задание, проверенное вручную. Считается корректным."}, {"n": 3, "id": 1140, "play": "2026 Задание 3", "title": "2026 АГ 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 4, "id": 1141, "play": "2026 Задание 4", "title": "2026 АГ 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 5, "id": 1142, "play": "2026 Задание 5", "title": "2026 АГ 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 6, "id": 1143, "play": "2026 Задание 6", "title": "2026 АГ 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 7, "id": 1144, "play": "2026 Задание 7", "title": "2026 АГ 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 8, "id": 1145, "play": "2026 Задание 8", "title": "2026 АГ 8", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 9, "id": 1146, "play": "2026 Задание 9", "title": "2026 АГ 9", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 10, "id": 1147, "play": "2026 Задание 10", "title": "2026 АГ 10", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 11, "id": 1148, "play": "2026 Задание 11", "title": "2026 Бради 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 12, "id": 1149, "play": "2026 Задание 12", "title": "2026 Бради 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 13, "id": 1150, "play": "2026 Задание 13", "title": "2026 Бради 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 14, "id": 1151, "play": "2026 Задание 14", "title": "2026 Бради 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 15, "id": 1152, "play": "2026 Задание 15", "title": "2026 Бради 5", "status": "review", "note": "Бланк по темам, обоснования по пунктам, диспансеризация из 4 пунктов и два верных в зачёте, «Назад» на предыдущий шаг. Вручную не подтверждено."}, {"n": 16, "id": 1153, "play": "2026 Задание 16", "title": "2026 Бради 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 17, "id": 1154, "play": "2026 Задание 17", "title": "2026 Липиды 1", "status": "review", "note": "Тексты, обоснования и «Назад». Комментарий инструментального пункта обрезан. Вручную не подтверждено."}, {"n": 18, "id": 1155, "play": "2026 Задание 18", "title": "2026 Липиды 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 19, "id": 1156, "play": "2026 Задание 19", "title": "2026 Липиды 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 20, "id": 1157, "play": "2026 Задание 20", "title": "2026 Липиды 4", "status": "review", "note": "Обоснование лаборатории разбито, «Назад» исправлен. Клинический диагноз не выравнивался: на шаге 3 пункта, в документе 2. Вручную не подтверждено."}, {"n": 21, "id": 1158, "play": "2026 Задание 21", "title": "2026 Липиды 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 22, "id": 1160, "play": "2026 Задание 22", "title": "2026 ЖА 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 23, "id": 1161, "play": "2026 Задание 23", "title": "2026 ЖА 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 24, "id": 1162, "play": "2026 Задание 24", "title": "2026 ЖА 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 25, "id": 1159, "play": "2026 Задание 25", "title": "2026 ЖА 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 26, "id": 1163, "play": "2026 Задание 26", "title": "2026 ЖА 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 27, "id": 1164, "play": "2026 Задание 27", "title": "2026 ЖА 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 28, "id": 1165, "play": "2026 Задание 28", "title": "2026 ЖА 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 29, "id": 1166, "play": "2026 Задание 29", "title": "2026 ИБС 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 30, "id": 1167, "play": "2026 Задание 30", "title": "2026 ИБС 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 31, "id": 1168, "play": "2026 Задание 31", "title": "2026 ИБС 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 32, "id": 1169, "play": "2026 Задание 32", "title": "2026 ИБС 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 33, "id": 1170, "play": "2026 Задание 33", "title": "2026 ИБС 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 34, "id": 1171, "play": "2026 Задание 34", "title": "2026 ОКСбпST 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 35, "id": 1172, "play": "2026 Задание 35", "title": "2026 ОКСбпST 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 36, "id": 1173, "play": "2026 Задание 36", "title": "2026 ОКСбпST 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 37, "id": 1174, "play": "2026 Задание 37", "title": "2026 ОКСбпST 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 38, "id": 1175, "play": "2026 Задание 38", "title": "2026 ОКСбпST 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 39, "id": 1176, "play": "2026 Задание 39", "title": "2026 ОКСбпST 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 40, "id": 1177, "play": "2026 Задание 40", "title": "2026 ИМБОКА 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 41, "id": 1178, "play": "2026 Задание 41", "title": "2026 ИМпST 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 42, "id": 1179, "play": "2026 Задание 42", "title": "2026 ИМпST 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 43, "id": 1180, "play": "2026 Задание 43", "title": "2026 ИМпST 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 44, "id": 1181, "play": "2026 Задание 44", "title": "2026 ИМпST 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 45, "id": 1182, "play": "2026 Задание 45", "title": "2026 ИМпST 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 46, "id": 1183, "play": "2026 Задание 46", "title": "2026 ИМпST 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 47, "id": 1184, "play": "2026 Задание 47", "title": "2026 ИМпST 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 48, "id": 1185, "play": "2026 Задание 48", "title": "2026 НЖТ 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 49, "id": 1186, "play": "2026 Задание 49", "title": "2026 НЖТ 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 50, "id": 1187, "play": "2026 Задание 50", "title": "2026 НЖТ 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 51, "id": 1188, "play": "2026 Задание 51", "title": "2026 НЖТ 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 52, "id": 1189, "play": "2026 Задание 52", "title": "2026 НЖТ 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 53, "id": 1190, "play": "2026 Задание 53", "title": "2026 ФП 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 54, "id": 1191, "play": "2026 Задание 54", "title": "2026 ФП 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 55, "id": 1192, "play": "2026 Задание 55", "title": "2026 ФП 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 56, "id": 1193, "play": "2026 Задание 56", "title": "2026 ФП 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 57, "id": 1194, "play": "2026 Задание 57", "title": "2026 ФП 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 58, "id": 1195, "play": "2026 Задание 58", "title": "2026 ФП 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 59, "id": 1196, "play": "2026 Задание 59", "title": "2026 ФП 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 60, "id": 1197, "play": "2026 Задание 60", "title": "2026 ФП 8", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 61, "id": 1198, "play": "2026 Задание 61", "title": "2026 ХСН 1", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 62, "id": 1199, "play": "2026 Задание 62", "title": "2026 ХСН 2", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 63, "id": 1200, "play": "2026 Задание 63", "title": "2026 ХСН 3", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 64, "id": 1201, "play": "2026 Задание 64", "title": "2026 ХСН 4", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 65, "id": 1202, "play": "2026 Задание 65", "title": "2026 ХСН 5", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 66, "id": 1203, "play": "2026 Задание 66", "title": "2026 ХСН 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 67, "id": 1204, "play": "2026 Задание 67", "title": "2026 Липиды 6", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 68, "id": 1205, "play": "2026 Задание 68", "title": "2026 Липиды 7", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}, {"n": 69, "id": 1206, "play": "2026 Задание 69", "title": "2026 Липиды 8", "status": "open", "note": "Правки ещё не залиты. Открыть можно, корректным не считается."}];
+const QUERY = "is_platform=true&group_id=13&course_id=126";
+const tokenInput = document.getElementById("token");
+tokenInput.value = localStorage.getItem("reviewToken") || "";
+document.getElementById("save").onclick = () => {
+  localStorage.setItem("reviewToken", tokenInput.value.trim());
+};
+document.getElementById("showAll").onchange = render;
+
+function gameUrl(id) {
+  return "https://edudev.med-game.ru/front/#/game/" + id + "?" + QUERY;
+}
+
+function render() {
+  const showAll = document.getElementById("showAll").checked;
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const rank = { verified: 0, review: 1, open: 2 };
+  const rows = TESTS.filter(t => showAll || t.status !== "open").slice().sort((a,b) => rank[a.status]-rank[b.status] || a.n-b.n);
+  for (const t of rows) {
+    const card = document.createElement("article");
+    card.className = "card " + t.status;
+    const badge = t.status === "verified" ? "проверено вручную" : t.status === "review" ? "ждёт проверки" : "не готово";
+    card.innerHTML = "<h2>" + t.play + " · " + t.title + "<span class=\"badge\">" + badge + "</span></h2>"
+      + "<div class=\"meta\">тест " + t.id + "</div>"
+      + "<div class=\"note\">" + t.note + "</div>"
+      + "<div class=\"url\">" + gameUrl(t.id) + "</div>";
+    card.ondblclick = () => openTest(t, card);
+    list.appendChild(card);
+  }
+}
+
+let caseWindow = null;
+
+function currentToken() {
+  return (tokenInput.value || "").trim().replace(/^Bearer\s+/i, "");
+}
+
+function sendToken(target) {
+  const token = currentToken();
+  if (!token || !target) return;
+  try { target.postMessage({ type: "token", token }, "*"); } catch (e) {}
+}
+
+window.addEventListener("message", (event) => {
+  const type = event.data && event.data.type;
+  if (type !== "SCENARIO_PLAYER_READY" && type !== "REQUEST_SCENARIO_PLAYER_TOKEN") return;
+  sendToken(event.source);
+});
+
+function openTest(t, card) {
+  document.querySelectorAll(".card").forEach(el => el.classList.remove("active"));
+  card.classList.add("active");
+  localStorage.setItem("reviewToken", currentToken());
+  const url = gameUrl(t.id);
+  const opened = window.open(url, "_blank");
+  const placeholder = document.getElementById("placeholder");
+  if (opened) {
+    caseWindow = opened;
+    [400, 1200, 2500, 5000].forEach((ms) => setTimeout(() => sendToken(opened), ms));
+    placeholder.textContent = "Открыто " + t.play + ". Токен уходит в игру, когда она сообщит, что готова.";
+    return;
+  }
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "opener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  placeholder.textContent = "Открываю " + t.play + ". Если вкладка пишет «Ждём JWT», оставьте эту страницу открытой: токен уйдёт после сигнала готовности.";
+}
+
+render();
+</script>
+</body>
+</html>
