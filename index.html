@@ -36,9 +36,16 @@
   .plan { margin: 8px 10px; }
   .plan summary { cursor: pointer; }
   .step { margin: 10px 0; }
+  .step.removed { opacity: .55; }
+  .step.removed .cols { display: none; }
+  .step-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .step-head h3 { margin: 8px 0; }
+  .step-actions { display: flex; gap: 6px; flex: none; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   pre { margin: 0; white-space: pre-wrap; background: #fff; border: 1px solid #e4e4e0; padding: 6px 8px; font: 12px/1.35 "Segoe UI", sans-serif; }
   pre.target { background: #f3f8f3; }
+  textarea.target { width: 100%; min-height: 132px; resize: vertical; border: 1px solid #bfd6bf; padding: 7px 8px; background: #f3f8f3; font: 12px/1.35 "Segoe UI", sans-serif; }
+  .saved { color: #3b6b3b; font-size: 11px; min-height: 16px; }
   @media (max-width: 900px) {
     html, body { height: 100%; overflow: hidden; }
     body { height: 100dvh; display: flex; flex-direction: column; }
@@ -75,6 +82,7 @@
     body.show-doc .game { display: none; }
     iframe { height: 100%; min-height: 0; }
     #doc-scroll { height: auto; flex: 1; min-height: 0; }
+    .cols { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -86,6 +94,7 @@
     <button id="save" type="button">Сохранить токен</button>
     <input id="q" type="search" placeholder="Номер или тема">
     <label><input id="ok" type="checkbox"> Утвердить это задание</label>
+    <button id="export-prompt" type="button">Скачать общий промпт</button>
   </div>
   <p id="placeholder" style="margin:6px 0 0;font-size:12px;color:#444">Щелчок по номеру открывает кейс слева и исходный документ справа. Вручную подтверждено только задание 2.</p>
   <div class="chips" id="chips"></div>
@@ -144,6 +153,20 @@ function setApproved(n, value) {
   if (value) map[n] = true; else delete map[n];
   localStorage.setItem("reviewApproved", JSON.stringify(map));
 }
+function editsMap() {
+  try { return JSON.parse(localStorage.getItem("reviewPlanEdits") || "{}"); }
+  catch (e) { return {}; }
+}
+function stepEdit(caseN, stepId) {
+  const all = editsMap();
+  return (all[caseN] && all[caseN][stepId]) || {};
+}
+function saveStepEdit(caseN, stepId, patch) {
+  const all = editsMap();
+  all[caseN] = all[caseN] || {};
+  all[caseN][stepId] = Object.assign({}, all[caseN][stepId] || {}, patch);
+  localStorage.setItem("reviewPlanEdits", JSON.stringify(all));
+}
 function currentToken() {
   return (tokenInput.value || "").trim().replace(/^Bearer\s+/i, "");
 }
@@ -187,12 +210,73 @@ function fillPlan(t) {
     body.innerHTML = "<p>" + esc(t.note) + "</p>";
     return;
   }
-  body.innerHTML = t.steps.map(step => ""
-    + "<section class=\"step\"><h3>" + esc(step.step) + " · " + esc(step.label) + "</h3>"
+  body.innerHTML = t.steps.map(step => {
+    const edit = stepEdit(t.n, step.id);
+    const target = Object.prototype.hasOwnProperty.call(edit, "target") ? edit.target : step.target;
+    return ""
+    + "<section class=\"step" + (edit.removed ? " removed" : "") + "\" data-step-id=\"" + esc(step.id) + "\">"
+    + "<div class=\"step-head\"><h3>" + esc(step.step) + " · " + esc(step.label) + "</h3>"
+    + "<span class=\"step-actions\"><button type=\"button\" class=\"restore-step\"" + (edit.removed ? "" : " hidden") + ">Вернуть</button>"
+    + "<button type=\"button\" class=\"remove-step\"" + (edit.removed ? " hidden" : "") + ">Убрать</button></span></div>"
     + "<div class=\"cols\"><div><h4>Сейчас</h4><pre>" + esc(step.now) + "</pre></div>"
-    + "<div><h4>" + esc(step.targetLabel || "По документу") + "</h4><pre class=\"target\">" + esc(step.target) + "</pre></div></div></section>"
-  ).join("");
+    + "<div><h4>" + esc(step.targetLabel || "По документу") + "</h4>"
+    + "<textarea class=\"target\" aria-label=\"Предлагаемая правка\">" + esc(target) + "</textarea><div class=\"saved\"></div></div></div></section>";
+  }).join("");
+  body.querySelectorAll(".step").forEach(section => {
+    const id = section.dataset.stepId;
+    const textarea = section.querySelector("textarea.target");
+    const saved = section.querySelector(".saved");
+    textarea.oninput = () => {
+      saveStepEdit(t.n, id, { target: textarea.value });
+      saved.textContent = "Сохранено на этом устройстве";
+    };
+    section.querySelector(".remove-step").onclick = () => {
+      saveStepEdit(t.n, id, { removed: true });
+      fillPlan(t);
+    };
+    section.querySelector(".restore-step").onclick = () => {
+      saveStepEdit(t.n, id, { removed: false });
+      fillPlan(t);
+    };
+  });
 }
+
+function buildPrompt() {
+  const parts = [
+    "Исправь перечисленные несоответствия в существующих JSON шагов.",
+    "Не меняй структуру сценариев, изображения, internal_id, seq_no и действия, если это отдельно не указано.",
+    ""
+  ];
+  for (const t of TESTS) {
+    const active = (t.steps || []).filter(step => !stepEdit(t.n, step.id).removed);
+    if (!active.length) continue;
+    parts.push("## " + t.play + " — " + t.title + " (test " + t.id + ")");
+    for (const step of active) {
+      const edit = stepEdit(t.n, step.id);
+      const target = Object.prototype.hasOwnProperty.call(edit, "target") ? edit.target : step.target;
+      parts.push(
+        "### " + step.step + " · " + step.label,
+        "Сейчас:",
+        step.now,
+        "",
+        "Исправить:",
+        target,
+        ""
+      );
+    }
+  }
+  return parts.join("\n");
+}
+
+document.getElementById("export-prompt").onclick = () => {
+  const blob = new Blob([buildPrompt()], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "prompt-ispravleniya-2026.txt";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
 
 async function loadDoc(t) {
   const job = ++docJob;
