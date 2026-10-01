@@ -21,10 +21,13 @@
   .chip.on { border-color: #1c1c1c; background: #eef6ee; }
   .chip.verified { color: #1f6b2a; }
   .chip.review { color: #8a5a00; }
+  .view-switch { display: none; }
   .split { height: calc(100vh - 118px); display: grid; grid-template-columns: 1fr 1fr; min-height: 420px; }
   .game, .paper { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #fff; }
   .game { border-right: 1px solid #d7d7d2; }
   .bar { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid #eee; background: #fafaf8; }
+  .bar-actions { display: flex; gap: 8px; align-items: center; }
+  .mobile-only { display: none; }
   .bar strong { font-size: 13px; }
   iframe { flex: 1; width: 100%; border: 0; background: #fff; }
   #frame-note { margin: 0; padding: 6px 10px; background: #fff6e8; font-size: 12px; }
@@ -37,9 +40,41 @@
   pre { margin: 0; white-space: pre-wrap; background: #fff; border: 1px solid #e4e4e0; padding: 6px 8px; font: 12px/1.35 "Segoe UI", sans-serif; }
   pre.target { background: #f3f8f3; }
   @media (max-width: 900px) {
-    .split { height: auto; grid-template-columns: 1fr; }
-    iframe { height: 70vh; }
-    #doc-scroll { height: 70vh; }
+    html, body { height: 100%; overflow: hidden; }
+    body { height: 100dvh; display: flex; flex-direction: column; }
+    .top { flex: none; }
+    #placeholder { display: none; }
+    .mobile-only { display: inline-block; }
+    .view-switch { display: flex; gap: 6px; margin-top: 8px; }
+    .view-switch button.on { background: #1c1c1c; color: #fff; }
+    .split { flex: 1; min-height: 0; height: auto; display: block; }
+    .game, .paper { height: 100%; }
+    body:not(.show-doc) .paper { display: none; }
+    body:not(.show-doc):not(.picking) .top { display: none; }
+    body.picking .game { position: static; height: 55dvh; }
+    body:not(.show-doc):not(.picking) .game {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      height: 100dvh;
+      width: 100%;
+    }
+    body:not(.show-doc):not(.picking) .game .bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+    }
+    body:not(.show-doc):not(.picking) iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+    }
+    body.show-doc .game { display: none; }
+    iframe { height: 100%; min-height: 0; }
+    #doc-scroll { height: auto; flex: 1; min-height: 0; }
   }
 </style>
 </head>
@@ -54,12 +89,20 @@
   </div>
   <p id="placeholder" style="margin:6px 0 0;font-size:12px;color:#444">Щелчок по номеру открывает кейс слева и исходный документ справа. Вручную подтверждено только задание 2.</p>
   <div class="chips" id="chips"></div>
+  <div class="view-switch">
+    <button type="button" id="show-game" class="on">Кейс</button>
+    <button type="button" id="show-doc">Документ</button>
+  </div>
 </div>
 <div class="split">
   <section class="game">
     <div class="bar">
       <strong id="game-title">Кейс</strong>
-      <a id="game-link" href="#" target="_blank" rel="opener">Открыть отдельно</a>
+      <span class="bar-actions">
+        <button type="button" id="show-list" class="mobile-only">Список</button>
+        <button type="button" id="show-doc-2" class="mobile-only">Документ</button>
+        <a id="game-link" href="#" target="_blank" rel="opener">Открыть отдельно</a>
+      </span>
     </div>
     <p id="frame-note" hidden>Если слева пусто, плеер не встроился в страницу. Откройте ссылку «Открыть отдельно» и оставьте эту вкладку открытой: токен уйдёт в игру сам.</p>
     <iframe id="game" title="Кейс"></iframe>
@@ -174,6 +217,10 @@ async function loadDoc(t) {
 
 function select(t) {
   current = t;
+  document.body.classList.remove("picking");
+  document.body.classList.remove("show-doc");
+  document.getElementById("show-game").classList.add("on");
+  document.getElementById("show-doc").classList.remove("on");
   history.replaceState(null, "", "#" + t.n);
   renderChips();
   document.getElementById("ok").checked = !!approvedMap()[t.n];
@@ -199,6 +246,25 @@ document.getElementById("ok").onchange = () => {
   setApproved(current.n, document.getElementById("ok").checked);
 };
 document.getElementById("q").oninput = renderChips;
+document.getElementById("show-game").onclick = () => {
+  document.body.classList.remove("show-doc");
+  document.getElementById("show-game").classList.add("on");
+  document.getElementById("show-doc").classList.remove("on");
+};
+function showDocument() {
+  document.body.classList.add("show-doc");
+  document.body.classList.remove("picking");
+  document.getElementById("show-doc").classList.add("on");
+  document.getElementById("show-game").classList.remove("on");
+}
+document.getElementById("show-list").onclick = () => {
+  document.body.classList.add("picking");
+  document.body.classList.remove("show-doc");
+  document.getElementById("show-game").classList.add("on");
+  document.getElementById("show-doc").classList.remove("on");
+};
+document.getElementById("show-doc").onclick = showDocument;
+document.getElementById("show-doc-2").onclick = showDocument;
 
 fetch("fixes.json").then(r => r.json()).then(data => {
   TESTS = data;
