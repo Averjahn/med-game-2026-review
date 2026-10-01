@@ -7,226 +7,208 @@
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 14px/1.45 "Segoe UI", sans-serif; color: #1c1c1c; background: #f6f6f4; }
-  .page { max-width: 1100px; margin: 0 auto; background: #fff; padding: 16px 20px 40px; min-height: 100vh; }
-  h1 { font-size: 18px; margin: 0 0 8px; }
-  p { margin: 0 0 10px; }
-  label { font-size: 12px; }
-  input[type="password"], input[type="search"] { width: 100%; padding: 6px 8px; }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0 12px; }
-  button { padding: 6px 10px; }
-  .card { border: 1px solid #d0d0cb; background: #fff; margin: 0 0 8px; }
-  .card.open { border-color: #1c1c1c; }
-  .head { padding: 10px 12px; cursor: pointer; }
-  .head:hover { background: #fafaf8; }
-  .card h2 { font-size: 15px; margin: 0 0 4px; }
-  .meta, .url { font-size: 12px; color: #555; }
-  .url { word-break: break-all; margin-top: 4px; }
-  .note { margin-top: 6px; }
-  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border: 1px solid #bbb; margin-left: 6px; }
-  .verified .badge { border-color: #1f6b2a; color: #1f6b2a; }
-  .review .badge { border-color: #8a5a00; color: #8a5a00; }
-  .approve { display: flex; gap: 6px; align-items: center; margin-top: 8px; font-size: 13px; }
-  .panel { display: none; border-top: 1px solid #e4e4e0; padding: 10px 12px 4px; }
-  .card.open .panel { display: block; }
-  .step { margin: 0 0 16px; }
-  .step h3 { font-size: 13px; margin: 0 0 6px; }
-  .kind { color: #555; font-weight: 400; }
-  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .cols h4 { margin: 0 0 4px; font-size: 12px; font-weight: 600; }
-  .pane { margin: 0; white-space: pre-wrap; background: #f7f7f5; border: 1px solid #e4e4e0; padding: 8px 10px; font: 13px/1.4 "Segoe UI", sans-serif; }
-  .pane.target { background: #f3f8f3; }
-  .empty-steps { color: #555; margin: 0 0 12px; }
-  @media (max-width: 800px) { .cols { grid-template-columns: 1fr; } }
+  html, body { margin: 0; height: 100%; }
+  body { font: 14px/1.4 "Segoe UI", sans-serif; color: #1c1c1c; background: #f6f6f4; }
+  .top { padding: 8px 12px 6px; background: #fff; border-bottom: 1px solid #d7d7d2; }
+  h1 { font-size: 16px; margin: 0 0 6px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  input[type="password"], input[type="search"] { padding: 5px 8px; }
+  input[type="search"] { width: 220px; }
+  button, .chip { font: inherit; }
+  button { padding: 5px 8px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; }
+  .chip { flex: none; border: 1px solid #c8c8c2; background: #fff; padding: 4px 8px; cursor: pointer; }
+  .chip.on { border-color: #1c1c1c; background: #eef6ee; }
+  .chip.verified { color: #1f6b2a; }
+  .chip.review { color: #8a5a00; }
+  .split { height: calc(100vh - 118px); display: grid; grid-template-columns: 1fr 1fr; min-height: 420px; }
+  .game, .paper { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #fff; }
+  .game { border-right: 1px solid #d7d7d2; }
+  .bar { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid #eee; background: #fafaf8; }
+  .bar strong { font-size: 13px; }
+  iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+  #frame-note { margin: 0; padding: 6px 10px; background: #fff6e8; font-size: 12px; }
+  #doc-scroll { flex: 1; overflow: auto; background: #e8e8e4; }
+  #doc { min-height: 100%; }
+  .plan { margin: 8px 10px; }
+  .plan summary { cursor: pointer; }
+  .step { margin: 10px 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  pre { margin: 0; white-space: pre-wrap; background: #fff; border: 1px solid #e4e4e0; padding: 6px 8px; font: 12px/1.35 "Segoe UI", sans-serif; }
+  pre.target { background: #f3f8f3; }
+  @media (max-width: 900px) {
+    .split { height: auto; grid-template-columns: 1fr; }
+    iframe { height: 70vh; }
+    #doc-scroll { height: 70vh; }
+  }
 </style>
 </head>
 <body>
-<div class="page">
+<div class="top">
   <h1>Проверка кейсов</h1>
-  <p>Одиночный щелчок раскрывает шаги: слева состояние до правки, справа предложение по документу. Двойной щелчок открывает кейс: is_platform=true, group_id=13, course_id=126. Вручную подтверждено только задание 2.</p>
-  <label for="token">Bearer-токен игрока, один раз</label>
-  <input id="token" type="password" autocomplete="off" placeholder="Вставьте токен, если игра ждёт платформу">
   <div class="row">
+    <input id="token" type="password" autocomplete="off" placeholder="Токен игрока" size="28">
     <button id="save" type="button">Сохранить токен</button>
-    <label><input id="showDone" type="checkbox"> Показать уже залитые (2, 15, 17, 20)</label>
+    <input id="q" type="search" placeholder="Номер или тема">
+    <label><input id="ok" type="checkbox"> Утвердить это задание</label>
   </div>
-  <label for="q">Найти задание</label>
-  <input id="q" type="search" placeholder="Номер или тема, например 16 или Липиды">
-  <p id="placeholder">Галочка «Утвердить» сохраняется в этом браузере. Двойной щелчок по заголовку открывает прохождение.</p>
-  <div id="list"></div>
+  <p id="placeholder" style="margin:6px 0 0;font-size:12px;color:#444">Щелчок по номеру открывает кейс слева и исходный документ справа. Вручную подтверждено только задание 2.</p>
+  <div class="chips" id="chips"></div>
 </div>
+<div class="split">
+  <section class="game">
+    <div class="bar">
+      <strong id="game-title">Кейс</strong>
+      <a id="game-link" href="#" target="_blank" rel="opener">Открыть отдельно</a>
+    </div>
+    <p id="frame-note" hidden>Если слева пусто, плеер не встроился в страницу. Откройте ссылку «Открыть отдельно» и оставьте эту вкладку открытой: токен уйдёт в игру сам.</p>
+    <iframe id="game" title="Кейс"></iframe>
+  </section>
+  <section class="paper">
+    <div class="bar">
+      <strong id="doc-title">Документ</strong>
+      <a id="doc-link" href="#" download>Скачать docx</a>
+    </div>
+    <div id="doc-scroll">
+      <details class="plan" id="plan"><summary>Краткий план правок</summary><div id="plan-body"></div></details>
+      <div id="doc"><p style="padding:16px">Выберите задание.</p></div>
+    </div>
+  </section>
+</div>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/docx-preview.min.js"></script>
 <script>
 const QUERY = "is_platform=true&group_id=13&course_id=126";
 const tokenInput = document.getElementById("token");
 tokenInput.value = localStorage.getItem("reviewToken") || "";
-document.getElementById("save").onclick = () => {
-  localStorage.setItem("reviewToken", tokenInput.value.trim());
-};
+document.getElementById("save").onclick = () => localStorage.setItem("reviewToken", tokenInput.value.trim());
 
 let TESTS = [];
-let clickTimer = null;
+let current = null;
+let docJob = 0;
+let frameTimer = null;
+const frame = document.getElementById("game");
 
 function gameUrl(id) {
   return "https://edudev.med-game.ru/front/#/game/" + id + "?" + QUERY;
 }
-
 function approvedMap() {
   try { return JSON.parse(localStorage.getItem("reviewApproved") || "{}"); }
   catch (e) { return {}; }
 }
-
 function setApproved(n, value) {
   const map = approvedMap();
-  if (value) map[n] = true;
-  else delete map[n];
+  if (value) map[n] = true; else delete map[n];
   localStorage.setItem("reviewApproved", JSON.stringify(map));
 }
-
-function esc(s) {
-  return String(s == null ? "" : s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function badgeText(t) {
-  if (t.status === "verified") return "проверено вручную";
-  if (t.status === "review") return "ждёт проверки";
-  if (approvedMap()[t.n]) return "утверждено здесь";
-  return "нужна правка";
-}
-
-function render() {
-  const showDone = document.getElementById("showDone").checked;
-  const q = document.getElementById("q").value.trim().toLowerCase();
-  const list = document.getElementById("list");
-  const openId = (list.querySelector(".card.open") || {}).dataset;
-  const keep = openId && openId.n;
-  list.innerHTML = "";
-  const rows = TESTS.filter(t => {
-    if (!showDone && !t.steps.length) return false;
-    if (!q) return true;
-    return (t.play + " " + t.title + " " + t.n).toLowerCase().includes(q);
-  }).slice().sort((a, b) => a.n - b.n);
-  if (!rows.length) {
-    list.textContent = "Ничего не найдено.";
-    return;
-  }
-  for (const t of rows) {
-    const card = document.createElement("article");
-    card.className = "card " + t.status;
-    card.dataset.n = String(t.n);
-    const count = t.steps.length
-      ? t.steps.length + " " + (t.steps.length === 1 ? "шаг" : "шагов")
-      : "сравнение не требуется";
-    card.innerHTML = ""
-      + "<div class=\"head\">"
-      + "<h2>" + esc(t.play) + " · " + esc(t.title) + "<span class=\"badge\">" + esc(badgeText(t)) + "</span></h2>"
-      + "<div class=\"meta\">тест " + t.id + " · " + esc(count) + "</div>"
-      + "<div class=\"note\">" + esc(t.note) + "</div>"
-      + "<div class=\"url\">" + esc(gameUrl(t.id)) + "</div>"
-      + "<label class=\"approve\"><input type=\"checkbox\" class=\"ok\"" + (approvedMap()[t.n] ? " checked" : "") + "> Утвердить правки этого задания</label>"
-      + "</div>"
-      + "<div class=\"panel\"></div>";
-    const head = card.querySelector(".head");
-    const ok = card.querySelector(".ok");
-    ok.onclick = (event) => event.stopPropagation();
-    ok.onchange = () => {
-      setApproved(t.n, ok.checked);
-      card.querySelector(".badge").textContent = badgeText(t);
-    };
-    head.onclick = (event) => {
-      if (event.target === ok || event.target.closest(".approve")) return;
-      clearTimeout(clickTimer);
-      clickTimer = setTimeout(() => {
-        clickTimer = null;
-        const willOpen = !card.classList.contains("open");
-        if (willOpen) fillPanel(card, t);
-        card.classList.toggle("open", willOpen);
-      }, 220);
-    };
-    head.ondblclick = (event) => {
-      if (event.target.closest(".approve")) return;
-      clearTimeout(clickTimer);
-      clickTimer = null;
-      openTest(t, card);
-    };
-    if (keep === String(t.n)) {
-      fillPanel(card, t);
-      card.classList.add("open");
-    }
-    list.appendChild(card);
-  }
-}
-
-function fillPanel(card, t) {
-  const panel = card.querySelector(".panel");
-  if (panel.dataset.filled === "1") return;
-  panel.dataset.filled = "1";
-  if (!t.steps.length) {
-    panel.innerHTML = "<p class=\"empty-steps\">Для этого задания пошаговое сравнение не собрано.</p>";
-    return;
-  }
-  panel.innerHTML = t.steps.map(step => ""
-    + "<section class=\"step\">"
-    + "<h3>" + esc(step.step) + " <span class=\"kind\">· " + esc(step.label) + "</span></h3>"
-    + "<div class=\"cols\">"
-    + "<div><h4>Сейчас</h4><pre class=\"pane\">" + esc(step.now) + "</pre></div>"
-    + "<div><h4>" + esc(step.targetLabel || "По документу") + "</h4><pre class=\"pane target\">" + esc(step.target) + "</pre></div>"
-    + "</div></section>"
-  ).join("");
-}
-
-document.getElementById("showDone").onchange = render;
-document.getElementById("q").oninput = render;
-
-let caseWindow = null;
-
 function currentToken() {
   return (tokenInput.value || "").trim().replace(/^Bearer\s+/i, "");
 }
-
 function sendToken(target) {
   const token = currentToken();
   if (!token || !target) return;
   try { target.postMessage({ type: "token", token }, "*"); } catch (e) {}
 }
-
 window.addEventListener("message", (event) => {
   const type = event.data && event.data.type;
   if (type !== "SCENARIO_PLAYER_READY" && type !== "REQUEST_SCENARIO_PLAYER_TOKEN") return;
-  sendToken(event.source);
+  if (frame.contentWindow && event.source !== frame.contentWindow) return;
+  sendToken(event.source || frame.contentWindow);
+  document.getElementById("frame-note").hidden = true;
+  clearTimeout(frameTimer);
 });
 
-function openTest(t, card) {
-  document.querySelectorAll(".card").forEach(el => el.classList.remove("active"));
-  card.classList.add("active");
-  localStorage.setItem("reviewToken", currentToken());
-  const url = gameUrl(t.id);
-  const opened = window.open(url, "_blank");
-  const placeholder = document.getElementById("placeholder");
-  if (opened) {
-    caseWindow = opened;
-    [400, 1200, 2500, 5000].forEach((ms) => setTimeout(() => sendToken(opened), ms));
-    placeholder.textContent = "Открыто " + t.play + ". Токен уходит в игру, когда она сообщит, что готова.";
-    return;
-  }
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "opener";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  placeholder.textContent = "Открываю " + t.play + ". Если вкладка пишет «Ждём JWT», оставьте эту страницу открытой: токен уйдёт после сигнала готовности.";
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-fetch("fixes.json")
-  .then(r => r.json())
-  .then(data => { TESTS = data; render(); })
-  .catch(() => {
-    document.getElementById("list").textContent = "Не удалось загрузить список правок.";
-  });
+function renderChips() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const box = document.getElementById("chips");
+  box.innerHTML = "";
+  for (const t of TESTS) {
+    if (q && !(t.play + " " + t.title + " " + t.n).toLowerCase().includes(q)) continue;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip " + t.status + (current && current.n === t.n ? " on" : "");
+    b.textContent = String(t.n);
+    b.title = t.play + " · " + t.title;
+    b.onclick = () => select(t);
+    box.appendChild(b);
+  }
+}
+
+function fillPlan(t) {
+  const body = document.getElementById("plan-body");
+  if (!t.steps.length) {
+    body.innerHTML = "<p>" + esc(t.note) + "</p>";
+    return;
+  }
+  body.innerHTML = t.steps.map(step => ""
+    + "<section class=\"step\"><h3>" + esc(step.step) + " · " + esc(step.label) + "</h3>"
+    + "<div class=\"cols\"><div><h4>Сейчас</h4><pre>" + esc(step.now) + "</pre></div>"
+    + "<div><h4>" + esc(step.targetLabel || "По документу") + "</h4><pre class=\"target\">" + esc(step.target) + "</pre></div></div></section>"
+  ).join("");
+}
+
+async function loadDoc(t) {
+  const job = ++docJob;
+  const doc = document.getElementById("doc");
+  document.getElementById("doc-title").textContent = t.docName || "Документ";
+  const link = document.getElementById("doc-link");
+  link.href = t.doc;
+  link.download = (t.docName || (t.n + ".docx"));
+  doc.innerHTML = "<p style=\"padding:16px\">Открываю документ…</p>";
+  try {
+    const res = await fetch(t.doc);
+    if (!res.ok) throw new Error(String(res.status));
+    const buf = await res.arrayBuffer();
+    if (job !== docJob) return;
+    doc.innerHTML = "";
+    await docx.renderAsync(buf, doc, null, { inWrapper: true, ignoreWidth: true, breakPages: true });
+  } catch (e) {
+    if (job !== docJob) return;
+    doc.innerHTML = "<p style=\"padding:16px\">Документ не открылся. Скачайте файл по ссылке выше.</p>";
+  }
+}
+
+function select(t) {
+  current = t;
+  history.replaceState(null, "", "#" + t.n);
+  renderChips();
+  document.getElementById("ok").checked = !!approvedMap()[t.n];
+  document.getElementById("game-title").textContent = t.play + " · " + t.title;
+  const url = gameUrl(t.id);
+  document.getElementById("game-link").href = url;
+  document.getElementById("placeholder").textContent = t.play + " · " + t.title + ". " + t.note;
+  document.getElementById("frame-note").hidden = true;
+  localStorage.setItem("reviewToken", currentToken());
+  frame.src = url;
+  clearTimeout(frameTimer);
+  frameTimer = setTimeout(() => { document.getElementById("frame-note").hidden = false; }, 8000);
+  [400, 1200, 2500, 5000].forEach((ms) => setTimeout(() => sendToken(frame.contentWindow), ms));
+  fillPlan(t);
+  document.getElementById("plan").open = false;
+  loadDoc(t);
+  const chip = document.querySelector(".chip.on");
+  if (chip) chip.scrollIntoView({ inline: "center", block: "nearest" });
+}
+
+document.getElementById("ok").onchange = () => {
+  if (!current) return;
+  setApproved(current.n, document.getElementById("ok").checked);
+};
+document.getElementById("q").oninput = renderChips;
+
+fetch("fixes.json").then(r => r.json()).then(data => {
+  TESTS = data;
+  renderChips();
+  const n = parseInt(location.hash.replace("#", ""), 10);
+  const found = TESTS.find(t => t.n === n) || TESTS.find(t => t.n === 15) || TESTS[0];
+  if (found) select(found);
+}).catch(() => {
+  document.getElementById("placeholder").textContent = "Не удалось загрузить список заданий.";
+});
 </script>
 </body>
 </html>
