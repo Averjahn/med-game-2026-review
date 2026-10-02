@@ -35,7 +35,9 @@
   #doc { min-height: 100%; }
   .plan { margin: 8px 10px; }
   .plan summary { cursor: pointer; }
+  .case-note { padding: 8px 10px; background: #fff8de; border: 1px solid #eadb9b; white-space: pre-wrap; }
   .step { margin: 10px 0; }
+  .step.choice { border-left: 4px solid #d39b1f; padding-left: 8px; }
   .step.removed { opacity: .55; }
   .step.removed .cols { display: none; }
   .step-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -210,11 +212,12 @@ function fillPlan(t) {
     body.innerHTML = "<p>" + esc(t.note) + "</p>";
     return;
   }
-  body.innerHTML = t.steps.map(step => {
+  const note = t.note ? "<p class=\"case-note\">" + esc(t.note) + "</p>" : "";
+  body.innerHTML = note + t.steps.map(step => {
     const edit = stepEdit(t.n, step.id);
     const target = Object.prototype.hasOwnProperty.call(edit, "target") ? edit.target : step.target;
     return ""
-    + "<section class=\"step" + (edit.removed ? " removed" : "") + "\" data-step-id=\"" + esc(step.id) + "\">"
+    + "<section class=\"step " + esc(step.kind || "") + (edit.removed ? " removed" : "") + "\" data-step-id=\"" + esc(step.id) + "\">"
     + "<div class=\"step-head\"><h3>" + esc(step.step) + " · " + esc(step.label) + "</h3>"
     + "<span class=\"step-actions\"><button type=\"button\" class=\"restore-step\"" + (edit.removed ? "" : " hidden") + ">Вернуть</button>"
     + "<button type=\"button\" class=\"remove-step\"" + (edit.removed ? " hidden" : "") + ">Убрать</button></span></div>"
@@ -245,6 +248,9 @@ function buildPrompt() {
   const parts = [
     "Исправь перечисленные несоответствия в существующих JSON шагов.",
     "Не меняй структуру сценариев, изображения, internal_id, seq_no и действия, если это отдельно не указано.",
+    "Для каждого верного по документу варианта установи isRight: true; неверные варианты оставь false.",
+    "Если есть answerCollections, selectedIdList верной коллекции должен содержать id всех правильных вариантов одновременно.",
+    "Пункты с пометкой «Нужно решение пользователя» не исправляй автоматически: используй только выбранный пользователем вариант.",
     ""
   ];
   for (const t of TESTS) {
